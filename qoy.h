@@ -141,8 +141,6 @@ used by JPEG: https://en.wikipedia.org/wiki/YCbCr#JPEG_conversion
 
 The library uses an integer math approximation:
 
-TODO: we have a green color cast now :(
-
 RGBA --> YCbCrA:
 
         ycbcra.y[0] = ((1254097 * rgba[0].r) + (2462056 * rgba[0].g) + (478151 * rgba[0].b)) >> 22
