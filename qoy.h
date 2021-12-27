@@ -69,10 +69,10 @@ compression levels.
 // Encode and store an RGBA buffer to the file system. The qoy_desc describes
 // the input pixel data.
 qoy_write("image_new.qoy", rgba_pixels, &(qoy_desc){
-	.width = 1920,
-	.height = 1080, 
-	.channels = 4,
-	.colorspace = QOY_COLORSPACE_SRGB
+    .width = 1920,
+    .height = 1080,
+    .channels = 4,
+    .colorspace = QOY_COLORSPACE_SRGB
 });
 
 // Load and decode a QOY image from the file system into a 32bbp RGBA buffer.
@@ -201,11 +201,11 @@ A QOY file has a 14 byte header, followed by any number of data "chunks" and an
 8-byte end marker.
 
 struct qoy_header_t {
-	char     magic[4];   // magic bytes "qoyf"
-	uint32_t width;      // image width in pixels (BE)
-	uint32_t height;     // image height in pixels (BE)
-	uint8_t  channels;   // 3 = without alpha, 4 = with alpha
-	uint8_t  colorspace; // 0 = sRGB with linear alpha, 1 = all channels linear (hint only)
+    char     magic[4];   // magic bytes "qoyf"
+    uint32_t width;      // image width in pixels (BE)
+    uint32_t height;     // image height in pixels (BE)
+    uint8_t  channels;   // 3 = without alpha, 4 = with alpha
+    uint8_t  colorspace; // 0 = sRGB with linear alpha, 1 = all channels linear (hint only)
 };
 
 Images are encoded from top to bottom, left to right. The decoder and encoder 
@@ -466,8 +466,8 @@ filled with the description read from the file header (for qoy_read and
 qoy_decode).
 
 The colorspace in this qoy_desc is an enum where
-	0 = sRGB, i.e. gamma scaled RGB channels and a linear alpha channel
-	1 = all channels are linear
+    0 = sRGB, i.e. gamma scaled RGB channels and a linear alpha channel
+    1 = all channels are linear
 You may use the constants QOY_COLORSPACE_SRGB or QOY_COLORSPACE_LINEAR. The
 colorspace is purely informative. It will be saved to the file header, but
 does not affect en-/decoding in any way. */
@@ -476,10 +476,10 @@ does not affect en-/decoding in any way. */
 #define QOY_COLORSPACE_LINEAR 1
 
 typedef struct {
-	unsigned int width;
-	unsigned int height;
-	unsigned char channels;
-	unsigned char colorspace;
+    unsigned int width;
+    unsigned int height;
+    unsigned char channels;
+    unsigned char colorspace;
 } qoy_desc;
 
 /* qoy_encode and qoy_decode can work with RGB(A) and YCbCr 4:2:0 (A) buffers.
@@ -599,8 +599,8 @@ Implementation */
 #include <string.h>
 
 #ifndef QOY_MALLOC
-	#define QOY_MALLOC(sz) malloc(sz)
-	#define QOY_FREE(p)    free(p)
+    #define QOY_MALLOC(sz) malloc(sz)
+    #define QOY_FREE(p)    free(p)
 #endif
 
 #define QOY_OP_321_MASK 0x80 /* 1.......                                                                          */
@@ -633,8 +633,8 @@ Implementation */
 #define QOY_OP_EOF      0xff /* 11111111*8 cannot be produced by the encoder, *6 is the max using QOY_OP_888      */
 
 #define QOY_MAGIC \
-	(((unsigned int)'q') << 24 | ((unsigned int)'o') << 16 | \
-	 ((unsigned int)'y') <<  8 | ((unsigned int)'f'))
+    (((unsigned int)'q') << 24 | ((unsigned int)'o') << 16 | \
+     ((unsigned int)'y') <<  8 | ((unsigned int)'f'))
 #define QOY_HEADER_SIZE 14
 
 /* 2GB is the max file size that this implementation can safely handle. We guard
@@ -658,18 +658,18 @@ typedef struct __attribute__((__packed__)) {
 static const unsigned char qoy_padding[8] = { QOY_OP_EOF, QOY_OP_EOF, QOY_OP_EOF, QOY_OP_EOF, QOY_OP_EOF, QOY_OP_EOF, QOY_OP_EOF, QOY_OP_EOF };
 
 void qoy_write_32(unsigned char *bytes, int *p, unsigned int v) {
-	bytes[(*p)++] = (0xff000000 & v) >> 24;
-	bytes[(*p)++] = (0x00ff0000 & v) >> 16;
-	bytes[(*p)++] = (0x0000ff00 & v) >> 8;
-	bytes[(*p)++] = (0x000000ff & v);
+    bytes[(*p)++] = (0xff000000 & v) >> 24;
+    bytes[(*p)++] = (0x00ff0000 & v) >> 16;
+    bytes[(*p)++] = (0x0000ff00 & v) >> 8;
+    bytes[(*p)++] = (0x000000ff & v);
 }
 
 unsigned int qoy_read_32(const unsigned char *bytes, int *p) {
-	unsigned int a = bytes[(*p)++];
-	unsigned int b = bytes[(*p)++];
-	unsigned int c = bytes[(*p)++];
-	unsigned int d = bytes[(*p)++];
-	return a << 24 | b << 16 | c << 8 | d;
+    unsigned int a = bytes[(*p)++];
+    unsigned int b = bytes[(*p)++];
+    unsigned int c = bytes[(*p)++];
+    unsigned int d = bytes[(*p)++];
+    return a << 24 | b << 16 | c << 8 | d;
 }
 
 int qoy_ycbcra_size(int width, int height, int channels) {
@@ -814,40 +814,40 @@ int qoy_ycbcra_to_rgba(const void* ycbcr420a_in, int width, int height, int chan
 }
 
 void *qoy_encode(const void *data, const qoy_desc *desc, int *out_len, int in_channels, int in_format) {
-	int internal_width = (desc->width + 1) & ~0x01;
-	int internal_height = (desc->height + 1) & ~0x01;
+    int internal_width = (desc->width + 1) & ~0x01;
+    int internal_height = (desc->height + 1) & ~0x01;
 
-	if (in_channels == 0) in_channels = desc->channels;
-	if (
-		data == NULL || out_len == NULL || desc == NULL ||
-		desc->width == 0 || desc->height == 0 ||
-		desc->channels < 3 || desc->channels > 4 ||
-		in_channels < 3 || in_channels > 4 ||
-		desc->colorspace > 1 ||
-		internal_height >= QOY_PIXELS_MAX / internal_width ||
-		in_format > 1
-	) {
-		return NULL;
-	}
+    if (in_channels == 0) in_channels = desc->channels;
+    if (
+        data == NULL || out_len == NULL || desc == NULL ||
+        desc->width == 0 || desc->height == 0 ||
+        desc->channels < 3 || desc->channels > 4 ||
+        in_channels < 3 || in_channels > 4 ||
+        desc->colorspace > 1 ||
+        internal_height >= QOY_PIXELS_MAX / internal_width ||
+        in_format > 1
+    ) {
+        return NULL;
+    }
 
-	int max_size = QOY_HEADER_SIZE + ((internal_width * internal_height + 3) >> 2) * (desc->channels == 4 ? 12 : 7) + (int)sizeof(qoy_padding);
+    int max_size = QOY_HEADER_SIZE + ((internal_width * internal_height + 3) >> 2) * (desc->channels == 4 ? 12 : 7) + (int)sizeof(qoy_padding);
 
-	unsigned char *bytes = (unsigned char *)QOY_MALLOC(max_size);
-	if (!bytes) {
-		return NULL;
-	}
+    unsigned char *bytes = (unsigned char *)QOY_MALLOC(max_size);
+    if (!bytes) {
+        return NULL;
+    }
 
     int p = 0;
-	qoy_write_32(bytes, &p, QOY_MAGIC);
-	qoy_write_32(bytes, &p, desc->width);
-	qoy_write_32(bytes, &p, desc->height);
-	bytes[p++] = desc->channels;
-	bytes[p++] = desc->colorspace;
+    qoy_write_32(bytes, &p, QOY_MAGIC);
+    qoy_write_32(bytes, &p, desc->width);
+    qoy_write_32(bytes, &p, desc->height);
+    bytes[p++] = desc->channels;
+    bytes[p++] = desc->colorspace;
 
-	const unsigned char *pixels = (const unsigned char *)data;
+    const unsigned char *pixels = (const unsigned char *)data;
 
-	qoy_ycbcr420a_t px, px_prev = {0};
-	qoy_ycbcr420a_diff_t px_diff;
+    qoy_ycbcr420a_t px, px_prev = {0};
+    qoy_ycbcr420a_diff_t px_diff;
     px_prev.a[0] = 255;
     px_prev.a[1] = 255;
     px_prev.a[2] = 255;
@@ -1022,56 +1022,56 @@ void *qoy_encode(const void *data, const qoy_desc *desc, int *out_len, int in_ch
             px_prev = *px;
         }
         if (in_format == QOY_FORMAT_YCBCR420A) buffer += size_ycbcra * (internal_width >> 1);
-	}
-	if (in_format != QOY_FORMAT_YCBCR420A) QOY_FREE(buffer);
+    }
+    if (in_format != QOY_FORMAT_YCBCR420A) QOY_FREE(buffer);
 
-	for (int i = 0; i < (int)sizeof(qoy_padding); i++) {
-		bytes[p++] = qoy_padding[i];
-	}
+    for (int i = 0; i < (int)sizeof(qoy_padding); i++) {
+        bytes[p++] = qoy_padding[i];
+    }
 
-	*out_len = p;
-	return bytes;
+    *out_len = p;
+    return bytes;
 }
 
 void *qoy_decode(const void *data, int size, qoy_desc *desc, int out_channels, int out_format) {
-	if (
-		data == NULL || desc == NULL ||
-		size < QOY_HEADER_SIZE + (int)sizeof(qoy_padding)
-	) {
-		return NULL;
-	}
+    if (
+        data == NULL || desc == NULL ||
+        size < QOY_HEADER_SIZE + (int)sizeof(qoy_padding)
+    ) {
+        return NULL;
+    }
 
-	const unsigned char *bytes = (const unsigned char *)data;
+    const unsigned char *bytes = (const unsigned char *)data;
 
     int p = 0;
-	unsigned int header_magic = qoy_read_32(bytes, &p);
-	desc->width = qoy_read_32(bytes, &p);
-	desc->height = qoy_read_32(bytes, &p);
-	desc->channels = bytes[p++];
-	desc->colorspace = bytes[p++];
-	if (out_channels == 0) out_channels = desc->channels;
+    unsigned int header_magic = qoy_read_32(bytes, &p);
+    desc->width = qoy_read_32(bytes, &p);
+    desc->height = qoy_read_32(bytes, &p);
+    desc->channels = bytes[p++];
+    desc->colorspace = bytes[p++];
+    if (out_channels == 0) out_channels = desc->channels;
 
-	int internal_width = (desc->width + 1) & ~0x01;
-	int internal_height = (desc->height + 1) & ~0x01;
+    int internal_width = (desc->width + 1) & ~0x01;
+    int internal_height = (desc->height + 1) & ~0x01;
 
-	if (
-		desc->width == 0 || desc->height == 0 ||
-		desc->channels < 3 || desc->channels > 4 ||
-		out_channels < 3 || out_channels > 4 ||
-		desc->colorspace > 1 ||
-		header_magic != QOY_MAGIC ||
-		internal_height >= QOY_PIXELS_MAX / internal_width ||
-		out_format > 1
-	) {
-		return NULL;
-	}
+    if (
+        desc->width == 0 || desc->height == 0 ||
+        desc->channels < 3 || desc->channels > 4 ||
+        out_channels < 3 || out_channels > 4 ||
+        desc->colorspace > 1 ||
+        header_magic != QOY_MAGIC ||
+        internal_height >= QOY_PIXELS_MAX / internal_width ||
+        out_format > 1
+    ) {
+        return NULL;
+    }
 
-	unsigned char *pixels = (unsigned char *)QOY_MALLOC(out_format == QOY_FORMAT_YCBCR420A ? qoy_ycbcra_size(desc->width, desc->height, out_channels) : desc->width * desc->height * out_channels);
-	if (!pixels) {
-		return NULL;
-	}
+    unsigned char *pixels = (unsigned char *)QOY_MALLOC(out_format == QOY_FORMAT_YCBCR420A ? qoy_ycbcra_size(desc->width, desc->height, out_channels) : desc->width * desc->height * out_channels);
+    if (!pixels) {
+        return NULL;
+    }
 
-	qoy_ycbcr420a_t px = {0};
+    qoy_ycbcr420a_t px = {0};
     px.a[0] = 255;
     px.a[1] = 255;
     px.a[2] = 255;
@@ -1079,7 +1079,7 @@ void *qoy_decode(const void *data, int size, qoy_desc *desc, int out_channels, i
 
     int run = 0;
     int size_ycbcra = (out_channels == 4) ? 10 : 6;
-	int chunks_len = size - (int)sizeof(qoy_padding);
+    int chunks_len = size - (int)sizeof(qoy_padding);
     unsigned char *buffer = (out_format != QOY_FORMAT_YCBCR420A) ? QOY_MALLOC(qoy_ycbcra_size(desc->width, desc->height, out_channels)) : (unsigned char *)pixels;
     for (int y = 0; y < internal_height; y += 2) {
         unsigned char *px_write = buffer;
@@ -1227,63 +1227,63 @@ void *qoy_decode(const void *data, int size, qoy_desc *desc, int out_channels, i
     }
     if (out_format != QOY_FORMAT_YCBCR420A) QOY_FREE(buffer);
 
-	return pixels;
+    return pixels;
 }
 
 #ifndef QOY_NO_STDIO
 #include <stdio.h>
 
 int qoy_write(const char *filename, const void *data, const qoy_desc *desc) {
-	FILE *f = fopen(filename, "wb");
-	int size;
-	void *encoded;
+    FILE *f = fopen(filename, "wb");
+    int size;
+    void *encoded;
 
-	if (!f) {
-		return 0;
-	}
+    if (!f) {
+        return 0;
+    }
 
-	encoded = qoy_encode(data, desc, &size, desc->channels, QOY_FORMAT_RGBA);
-	if (!encoded) {
-		fclose(f);
-		return 0;
-	}
+    encoded = qoy_encode(data, desc, &size, desc->channels, QOY_FORMAT_RGBA);
+    if (!encoded) {
+        fclose(f);
+        return 0;
+    }
 
-	fwrite(encoded, 1, size, f);
-	fclose(f);
-	
-	QOY_FREE(encoded);
-	return size;
+    fwrite(encoded, 1, size, f);
+    fclose(f);
+
+    QOY_FREE(encoded);
+    return size;
 }
 
 void *qoy_read(const char *filename, qoy_desc *desc, int channels) {
-	FILE *f = fopen(filename, "rb");
-	int size, bytes_read;
-	void *pixels, *data;
+    FILE *f = fopen(filename, "rb");
+    int size, bytes_read;
+    void *pixels, *data;
 
-	if (!f) {
-		return NULL;
-	}
+    if (!f) {
+        return NULL;
+    }
 
-	fseek(f, 0, SEEK_END);
-	size = ftell(f);
-	if (size <= 0) {
-		fclose(f);
-		return NULL;
-	}
-	fseek(f, 0, SEEK_SET);
+    fseek(f, 0, SEEK_END);
+    size = ftell(f);
+    if (size <= 0) {
+        fclose(f);
+        return NULL;
+    }
+    fseek(f, 0, SEEK_SET);
 
-	data = QOY_MALLOC(size);
-	if (!data) {
-		fclose(f);
-		return NULL;
-	}
+    data = QOY_MALLOC(size);
+    if (!data) {
+        fclose(f);
+        return NULL;
+    }
 
-	bytes_read = fread(data, 1, size, f);
-	fclose(f);
+    bytes_read = fread(data, 1, size, f);
+    fclose(f);
 
-	pixels = qoy_decode(data, bytes_read, desc, channels, QOY_FORMAT_RGBA);
-	QOY_FREE(data);
-	return pixels;
+    pixels = qoy_decode(data, bytes_read, desc, channels, QOY_FORMAT_RGBA);
+    QOY_FREE(data);
+    return pixels;
 }
 
 #endif /* QOY_NO_STDIO */
